@@ -3,256 +3,1001 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Castle Quest - 2D Zelda-like Adventure</title>
+    <title>Castle Quest</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
-            font-family: 'Courier New', monospace; 
+        body {
+            margin: 0;
             overflow: hidden;
+            background-color: #111;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
         }
-        #gameContainer { 
-            position: relative; 
-            width: 1024px;
-            height: 768px;
-            border: 4px solid #4a4a6a; 
-            box-shadow: 0 0 20px rgba(255, 100, 100, 0.5); 
-            background: #0f0f1a;
+        canvas {
+            border: 4px solid #4a4a4a;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            background-color: #2d5a27; /* Grass green base */
+            image-rendering: pixelated;
         }
-        #gameCanvas { 
-            display: block; 
-            background: #2d5a27; 
+        #ui-layer {
             position: absolute;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
         }
-        #ui { 
-            position: absolute; 
-            top: 10px; 
-            left: 10px; 
-            color: white; 
-            font-size: 16px; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
-            z-index: 10; 
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            text-shadow: 2px 2px 0 #000;
         }
-        #healthBar { 
-            width: 200px; 
-            height: 20px; 
-            background: #333; 
-            border: 2px solid #fff; 
-            margin-bottom: 5px; 
+        .health-bar-container {
+            width: 200px;
+            height: 20px;
+            background: #333;
+            border: 2px solid #fff;
         }
-        #healthFill { 
-            width: 100%; 
-            height: 100%; 
-            background: linear-gradient(90deg, #ff4444, #ff6666); 
-            transition: width 0.3s; 
+        .health-bar {
+            width: 100%;
+            height: 100%;
+            background: #e74c3c;
+            transition: width 0.2s;
         }
-        #bossHealthBar { 
-            position: absolute; 
-            top: 10px; 
-            right: 10px; 
-            width: 300px; 
-            height: 25px; 
-            background: #333; 
-            border: 2px solid #fff; 
-            display: none; 
+        .boss-health-container {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            text-align: center;
+            display: none;
         }
-        #bossHealthFill { 
-            width: 100%; 
-            height: 100%; 
-            background: linear-gradient(90deg, #8b0000, #ff0000); 
-            transition: width 0.3s; 
+        .boss-name {
+            font-size: 18px;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0 #000;
+            color: #ff9f43;
         }
-        #bossLabel { 
-            position: absolute; 
-            top: -20px; 
-            right: 0; 
-            color: #ff4444; 
-            font-weight: bold; 
-            font-size: 14px; 
+        .boss-bar-bg {
+            width: 100%;
+            height: 25px;
+            background: #333;
+            border: 2px solid #fff;
         }
-        #gameOver { 
-            position: absolute; 
-            top: 50%; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            background: rgba(0,0,0,0.9); 
-            padding: 40px; 
-            border: 3px solid #ff4444; 
-            text-align: center; 
-            color: white; 
-            display: none; 
-            z-index: 100; 
+        .boss-bar {
+            width: 100%;
+            height: 100%;
+            background: #8e44ad;
+            transition: width 0.2s;
         }
-        #gameOver h2 { 
-            font-size: 32px; 
-            margin-bottom: 20px; 
-        }
-        #restartBtn { 
-            padding: 10px 30px; 
-            font-size: 18px; 
-            background: #4a4a6a; 
-            color: white; 
-            border: 2px solid #fff; 
-            cursor: pointer; 
-            font-family: 'Courier New', monospace; 
-        }
-        #restartBtn:hover { 
-            background: #6a6a8a; 
-        }
-        #abilityStatus { 
-            position: absolute; 
-            bottom: 10px; 
-            right: 10px; 
-            color: white; 
-            font-size: 14px; 
-            text-align: right; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+        
+        /* Pause/Settings Menu */
+        #pause-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
             z-index: 10;
         }
+        #pause-menu h2 {
+            font-size: 40px;
+            margin-bottom: 30px;
+            color: #f1c40f;
+            text-shadow: 3px 3px 0 #000;
+        }
+        .menu-item {
+            margin: 15px 0;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px 20px;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .menu-item:hover {
+            color: #f1c40f;
+            border: 2px solid #f1c40f;
+            background: rgba(255,255,255,0.1);
+        }
+        .slider-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        input[type=range] {
+            width: 300px;
+            cursor: pointer;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
 
-        /* Start Screen and Credits Screen */
-        #startScreen, #creditsScreen { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            z-index: 200; 
+        /* Victory/Game Over Overlay */
+        #message-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 20;
+            text-align: center;
         }
-        #creditsScreen { 
-            display: none; 
+        #message-overlay h1 {
+            font-size: 50px;
+            margin-bottom: 20px;
+            text-shadow: 4px 4px 0 #000;
         }
-        h1 { 
-            color: #ffd700; 
-            font-size: 48px; 
-            margin-bottom: 20px; 
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.8); 
-            letter-spacing: 4px; 
+        #message-overlay p {
+            font-size: 24px;
+            margin-bottom: 30px;
         }
-        .subtitle { 
-            color: #c0c0c0; 
-            font-size: 18px; 
-            margin-bottom: 40px; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+        button.restart-btn {
+            padding: 15px 30px;
+            font-size: 20px;
+            font-family: inherit;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border: 2px solid white;
         }
-        .menu-buttons { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-        }
-        .menu-btn { 
-            padding: 15px 40px; 
-            font-size: 20px; 
-            font-family: 'Courier New', monospace; 
-            background: linear-gradient(180deg, #4a4a6a 0%, #2a2a4a 100%); 
-            color: #ffd700; 
-            border: 2px solid #6a6a8a; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            transition: all 0.3s; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4); 
-        }
-        .menu-btn:hover { 
-            background: linear-gradient(180deg, #5a5a7a 0%, #3a3a5a 100%); 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 12px rgba(0,0,0,0.6); 
-        }
-        #creditsText { 
-            color: #c0c0c0; 
-            font-size: 24px; 
-            margin-bottom: 30px; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
-            text-align: center; 
-            line-height: 1.6; 
-        }
-        .credit-name { 
-            color: #ffd700; 
-            font-size: 32px; 
-            font-weight: bold; 
-            margin-top: 10px; 
-        }
-        .controls-info { 
-            color: #888; 
-            font-size: 14px; 
-            margin-top: 30px; 
-            text-align: center; 
-            line-height: 1.8; 
-        }
-        .key { 
-            color: #ffd700; 
-            font-weight: bold; 
+        button.restart-btn:hover {
+            background: #c0392b;
         }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas" width="1024" height="768"></canvas>
-        
-        <div id="ui">
-            <div id="healthBar"><div id="healthFill"></div></div>
-            <div>Room: <span id="roomNum">1</span>/7</div>
-        </div>
-        
-        <div id="bossHealthBar">
-            <div id="bossLabel">DARK LORD</div>
-            <div id="bossHealthFill"></div>
-        </div>
-        
-        <div id="gameOver">
-            <h2 id="gameOverText">GAME OVER</h2>
-            <button id="restartBtn">PLAY AGAIN</button>
-        </div>
-        
-        <div id="abilityStatus">
-            <div>Shield (R): <span id="shieldStatus">Ready</span></div>
-            <div>Bomb (T): <span id="bombStatus">Ready</span></div>
-        </div>
 
-        <!-- Start Screen -->
-        <div id="startScreen">
-            <h1>CASTLE QUEST</h1>
-            <div class="subtitle">A Retro Adventure</div>
-            <div class="menu-buttons">
-                <button class="menu-btn" id="playBtn">PLAY GAME</button>
-                <button class="menu-btn" id="creditsBtn">CREDITS</button>
-                <button class="menu-btn" id="leaveBtn">LEAVE GAME</button>
-            </div>
-            <div class="controls-info">
-                <span class="key">WASD/Arrows</span> Move |
-                <span class="key">SPACE/K</span> Sword Attack |
-                <span class="key">R</span> Shield (5s) |
-                <span class="key">T</span> Bomb
-            </div>
-        </div>
+    <canvas id="gameCanvas"></canvas>
 
-        <!-- Credits Screen -->
-        <div id="creditsScreen">
-            <h1>CREDITS</h1>
-            <div id="creditsText">
-                Game Designed & Developed by<br>
-                <div class="credit-name">Dorian Voegeli</div>
-                <br>
-                &<br>
-                <div class="credit-name">Saskia</div>
-                <br>
-                A Retro Zelda-inspired Adventure
+    <div id="ui-layer">
+        <div class="hud-top">
+            <div>
+                <div>HEALTH</div>
+                <div class="health-bar-container">
+                    <div id="player-health" class="health-bar"></div>
+                </div>
             </div>
-            <button class="menu-btn" id="backBtn">BACK TO MENU</button>
+            <div id="room-indicator">Room: 1/7</div>
+        </div>
+        
+        <div id="boss-hud" class="boss-health-container">
+            <div class="boss-name">DARK LORD</div>
+            <div class="boss-bar-bg">
+                <div id="boss-health" class="boss-bar"></div>
+            </div>
         </div>
     </div>
 
-    <script src="game.js"></script>
+    <!-- Pause/Settings Menu -->
+    <div id="pause-menu">
+        <h2>PAUSED</h2>
+        <div class="slider-container">
+            <label for="volume-slider">Music Volume</label>
+            <input type="range" id="volume-slider" min="0" max="100" value="50">
+        </div>
+        <div class="menu-item" onclick="togglePause()">RESUME</div>
+        <div class="menu-item" onclick="resetGame()">RESTART GAME</div>
+        <div style="margin-top: 20px; font-size: 14px; color: #aaa;">Press ESC to Toggle Menu</div>
+    </div>
+
+    <!-- Victory / Game Over Overlay -->
+    <div id="message-overlay">
+        <h1 id="msg-title"></h1>
+        <p id="msg-subtitle"></p>
+        <button class="restart-btn" onclick="resetGame()">PLAY AGAIN</button>
+    </div>
+
+<script>
+/**
+ * GAME CONFIGURATION & STATE
+ */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Set canvas size
+canvas.width = 800;
+canvas.height = 600;
+
+// Game State
+let gameState = 'playing'; // playing, paused, gameover, victory
+let currentRoom = 0;
+let frameCount = 0;
+let musicVolume = 0.5;
+
+// Inputs
+const keys = {};
+
+// Audio Context
+let audioCtx;
+let bgmOscillators = [];
+let bgmGain;
+let isBgmPlaying = false;
+
+/**
+ * ENTITIES
+ */
+const player = {
+    x: 400,
+    y: 300,
+    w: 32,
+    h: 32,
+    speed: 3.5, // Smoother, faster than enemies
+    color: '#3498db',
+    health: 100,
+    maxHealth: 100,
+    dir: 'down',
+    attacking: false,
+    attackTimer: 0,
+    shieldActive: false,
+    shieldTimer: 0,
+    shieldCooldown: 0,
+    bombCooldown: 0,
+    invincible: 0
+};
+
+let enemies = [];
+let projectiles = []; // Arrows, Fireballs, Waterballs
+let particles = [];
+let bombs = [];
+let roomData = [];
+
+/**
+ * ROOM DESIGN (7 Rooms)
+ * 0-5: Regular rooms with enemies/fire
+ * 6: Boss Room
+ */
+function initRooms() {
+    roomData = [];
+    for(let i=0; i<7; i++) {
+        roomData.push({
+            cleared: false,
+            enemiesDefeated: 0,
+            totalEnemies: 0
+        });
+    }
+}
+
+/**
+ * AUDIO SYSTEM (Synthesized Retro Sounds)
+ */
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function playSound(type) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+
+    if (type === 'sword') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+    } else if (type === 'hit') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(50, now + 0.2);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+    } else if (type === 'bomb_throw') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.linearRampToValueAtTime(400, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+    } else if (type === 'bomb_explosion') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(100, now);
+        osc.frequency.exponentialRampToValueAtTime(10, now + 0.5);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+        osc.start(now);
+        osc.stop(now + 0.5);
+    } else if (type === 'shield') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.linearRampToValueAtTime(1200, now + 0.3);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+    } else if (type === 'arrow') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(800, now);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+    } else if (type === 'win') {
+        // Simple arpeggio
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.type = 'square';
+            o.frequency.value = freq;
+            g.gain.setValueAtTime(0.1, now + i*0.1);
+            g.gain.linearRampToValueAtTime(0, now + i*0.1 + 0.3);
+            o.start(now + i*0.1);
+            o.stop(now + i*0.1 + 0.3);
+        });
+    }
+}
+
+function startBGM(isBoss) {
+    if (!audioCtx) return;
+    stopBGM();
+    
+    bgmGain = audioCtx.createGain();
+    bgmGain.gain.value = musicVolume;
+    bgmGain.connect(audioCtx.destination);
+
+    // Simple retro loop simulation
+    // In a real scenario, we'd use a buffer, but here we synthesize a simple drone/melody
+    // For simplicity in this single-file constraint, we will just create a continuous low hum for "atmosphere"
+    // and change pitch for boss.
+    
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    
+    osc1.type = 'sawtooth';
+    osc2.type = 'square';
+    
+    if (isBoss) {
+        osc1.frequency.value = 50; // Dark low drone
+        osc2.frequency.value = 55;
+    } else {
+        osc1.frequency.value = 110; // Basic retro bass
+        osc2.frequency.value = 165;
+    }
+
+    const lfo = audioCtx.createOscillator();
+    lfo.frequency.value = 4;
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 500;
+    
+    // Connect LFO to filter frequency or detune for movement
+    // Keeping it simple: just play tones
+    
+    osc1.connect(bgmGain);
+    osc2.connect(bgmGain);
+    
+    osc1.start();
+    osc2.start();
+    
+    bgmOscillators = [osc1, osc2];
+    isBgmPlaying = true;
+}
+
+function stopBGM() {
+    if (bgmOscillators) {
+        bgmOscillators.forEach(osc => {
+            try { osc.stop(); } catch(e){}
+        });
+        bgmOscillators = [];
+    }
+    isBgmPlaying = false;
+}
+
+function updateBGMVolume() {
+    if (bgmGain) {
+        bgmGain.gain.setTargetAtTime(musicVolume, audioCtx.currentTime, 0.1);
+    }
+}
+
+/**
+ * GAME LOGIC
+ */
+
+function spawnEnemies(roomIndex) {
+    enemies = [];
+    projectiles = [];
+    bombs = [];
+    particles = [];
+    
+    if (roomIndex === 6) {
+        // Boss Room
+        enemies.push({
+            type: 'boss',
+            x: 400,
+            y: 150,
+            w: 60,
+            h: 60,
+            health: 200,
+            maxHealth: 200,
+            speed: 0,
+            color: '#8e44ad',
+            state: 'idle',
+            timer: 0
+        });
+        roomData[6].totalEnemies = 1;
+        return;
+    }
+
+    // Regular Rooms: Mix of Guards and Archers
+    const guardCount = 2 + Math.floor(Math.random() * 2); // 2-3 guards
+    const archerCount = 1 + Math.floor(Math.random() * 2); // 1-2 archers
+
+    for(let i=0; i<guardCount; i++) {
+        enemies.push({
+            type: 'guard',
+            x: 100 + Math.random() * 600,
+            y: 100 + Math.random() * 400,
+            w: 32,
+            h: 32,
+            health: 30,
+            maxHealth: 30,
+            speed: 1.2, // Slower than player (3.5)
+            color: '#e67e22',
+            attackTimer: 0
+        });
+    }
+
+    for(let i=0; i<archerCount; i++) {
+        enemies.push({
+            type: 'archer',
+            x: 100 + Math.random() * 600,
+            y: 100 + Math.random() * 400,
+            w: 28,
+            h: 28,
+            health: 20,
+            maxHealth: 20,
+            speed: 1.0,
+            color: '#2ecc71',
+            attackTimer: 0,
+            distance: 200 // Keep distance
+        });
+    }
+    
+    roomData[roomIndex].totalEnemies = guardCount + archerCount;
+    roomData[roomIndex].enemiesDefeated = 0;
+}
+
+function createExplosion(x, y, color, count) {
+    for(let i=0; i<count; i++) {
+        particles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 1.0,
+            color: color
+        });
+    }
+}
+
+function update() {
+    if (gameState !== 'playing') return;
+
+    frameCount++;
+
+    // Player Movement (Smooth)
+    let dx = 0;
+    let dy = 0;
+    if (keys['w'] || keys['arrowup']) dy = -player.speed;
+    if (keys['s'] || keys['arrowdown']) dy = player.speed;
+    if (keys['a'] || keys['arrowleft']) dx = -player.speed;
+    if (keys['d'] || keys['arrowright']) dx = player.speed;
+
+    if (dx !== 0 || dy !== 0) {
+        player.x += dx;
+        player.y += dy;
+        
+        // Direction for attacking/bombs
+        if (Math.abs(dx) > Math.abs(dy)) {
+            player.dir = dx > 0 ? 'right' : 'left';
+        } else {
+            player.dir = dy > 0 ? 'down' : 'up';
+        }
+    }
+
+    // Boundaries
+    player.x = Math.max(20, Math.min(canvas.width - 20 - player.w, player.x));
+    player.y = Math.max(20, Math.min(canvas.height - 20 - player.h, player.y));
+
+    // Timers
+    if (player.shieldActive) {
+        player.shieldTimer--;
+        if (player.shieldTimer <= 0) player.shieldActive = false;
+    }
+    if (player.shieldCooldown > 0) player.shieldCooldown--;
+    if (player.bombCooldown > 0) player.bombCooldown--;
+    if (player.invincible > 0) player.invincible--;
+    if (player.attacking) {
+        player.attackTimer--;
+        if (player.attackTimer <= 0) player.attacking = false;
+    }
+
+    // Room Transition
+    if (roomData[currentRoom].enemiesDefeated >= roomData[currentRoom].totalEnemies && currentRoom < 6) {
+        // Check if player is near exit (right side)
+        if (player.x > canvas.width - 100) {
+            currentRoom++;
+            player.x = 50;
+            player.y = 300;
+            spawnEnemies(currentRoom);
+            if (currentRoom === 6) {
+                startBGM(true); // Boss Music
+                document.getElementById('boss-hud').style.display = 'block';
+            }
+        }
+    }
+
+    // Enemies Logic
+    enemies.forEach((en, idx) => {
+        if (en.health <= 0) return;
+
+        const dist = Math.hypot(player.x - en.x, player.y - en.y);
+
+        if (en.type === 'guard') {
+            // Chase player slowly
+            if (dist < 400) {
+                const angle = Math.atan2(player.y - en.y, player.x - en.x);
+                en.x += Math.cos(angle) * en.speed;
+                en.y += Math.sin(angle) * en.speed;
+            }
+            
+            // Attack
+            if (dist < 40 && en.attackTimer <= 0) {
+                if (!player.shieldActive && player.invincible <= 0) {
+                    player.health -= 10;
+                    player.invincible = 30;
+                    playSound('hit');
+                    createExplosion(player.x, player.y, '#ff0000', 5);
+                }
+                en.attackTimer = 60;
+            }
+        } else if (en.type === 'archer') {
+            // Keep distance
+            if (dist < en.distance) {
+                const angle = Math.atan2(en.y - player.y, en.x - player.x);
+                en.x += Math.cos(angle) * en.speed;
+                en.y += Math.sin(angle) * en.speed;
+            } else if (dist > en.distance + 50) {
+                const angle = Math.atan2(player.y - en.y, player.x - en.x);
+                en.x += Math.cos(angle) * en.speed;
+                en.y += Math.sin(angle) * en.speed;
+            }
+
+            // Shoot Arrow
+            if (en.attackTimer <= 0) {
+                const angle = Math.atan2(player.y - en.y, player.x - en.x);
+                projectiles.push({
+                    x: en.x + en.w/2,
+                    y: en.y + en.h/2,
+                    vx: Math.cos(angle) * 5,
+                    vy: Math.sin(angle) * 5,
+                    type: 'arrow',
+                    damage: 10,
+                    life: 100
+                });
+                playSound('arrow');
+                en.attackTimer = 120;
+            }
+        } else if (en.type === 'boss') {
+            en.timer++;
+            const bossPattern = Math.floor(en.timer / 100) % 4;
+            
+            if (bossPattern === 0 && en.timer % 20 === 0) {
+                // Spread fireballs
+                for(let i=-2; i<=2; i++) {
+                    projectiles.push({
+                        x: en.x + 30, y: en.y + 30,
+                        vx: i * 2, vy: 4,
+                        type: 'fireball', damage: 15, life: 200
+                    });
+                }
+            } else if (bossPattern === 1 && en.timer % 40 === 0) {
+                // Aimed water balls
+                const angle = Math.atan2(player.y - en.y, player.x - en.x);
+                projectiles.push({
+                    x: en.x + 30, y: en.y + 30,
+                    vx: Math.cos(angle) * 6, vy: Math.sin(angle) * 6,
+                    type: 'waterball', damage: 15, life: 200
+                });
+            }
+        }
+
+        if (en.attackTimer > 0) en.attackTimer--;
+
+        // Collision with Player Sword
+        if (player.attacking && player.attackTimer > 10) { // Active frames
+            let swordX = player.x + player.w/2;
+            let swordY = player.y + player.h/2;
+            if (player.dir === 'right') swordX += 20;
+            if (player.dir === 'left') swordX -= 20;
+            if (player.dir === 'down') swordY += 20;
+            if (player.dir === 'up') swordY -= 20;
+
+            const sDist = Math.hypot(swordX - (en.x + en.w/2), swordY - (en.y + en.h/2));
+            if (sDist < 40) {
+                en.health -= 10;
+                createExplosion(en.x, en.y, '#fff', 3);
+                if (en.health <= 0) {
+                    roomData[currentRoom].enemiesDefeated++;
+                    if (en.type === 'boss') {
+                        endGame(true);
+                    }
+                }
+            }
+        }
+    });
+
+    // Projectiles Logic
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        let p = projectiles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+
+        // Hit Player
+        if (p.life > 0 && 
+            player.x < p.x + 10 && player.x + player.w > p.x &&
+            player.y < p.y + 10 && player.y + player.h > p.y) {
+            
+            if (!player.shieldActive && player.invincible <= 0) {
+                player.health -= p.damage;
+                player.invincible = 30;
+                playSound('hit');
+                createExplosion(player.x, player.y, '#00ffff', 5);
+            }
+            p.life = 0;
+        }
+
+        if (p.life <= 0) projectiles.splice(i, 1);
+    }
+
+    // Bombs Logic
+    for (let i = bombs.length - 1; i >= 0; i--) {
+        let b = bombs[i];
+        b.timer--;
+        if (b.timer === 60) { // Warning flash
+            b.warning = true;
+        }
+        if (b.timer <= 0) {
+            // Explode
+            playSound('bomb_explosion');
+            createExplosion(b.x, b.y, '#e74c3c', 20);
+            
+            // Damage Boss heavily (80%)
+            if (currentRoom === 6) {
+                enemies.forEach(en => {
+                    if (en.type === 'boss') {
+                        const dmg = en.maxHealth * 0.8;
+                        en.health -= dmg;
+                        if (en.health <= 0) endGame(true);
+                    }
+                });
+            }
+            // Damage normal enemies in radius
+            enemies.forEach(en => {
+                if (en.type !== 'boss') {
+                    const dist = Math.hypot(en.x - b.x, en.y - b.y);
+                    if (dist < 100) {
+                        en.health -= 50;
+                        if (en.health <= 0) {
+                            roomData[currentRoom].enemiesDefeated++;
+                        }
+                    }
+                }
+            });
+
+            bombs.splice(i, 1);
+        }
+    }
+
+    // Particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.05;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // Check Death
+    if (player.health <= 0) {
+        endGame(false);
+    }
+
+    // Update UI
+    document.getElementById('player-health').style.width = Math.max(0, player.health) + '%';
+    document.getElementById('room-indicator').innerText = `Room: ${currentRoom + 1}/7`;
+    if (currentRoom === 6 && enemies.length > 0) {
+        const boss = enemies.find(e => e.type === 'boss');
+        if (boss) {
+            document.getElementById('boss-health').style.width = (boss.health / boss.maxHealth * 100) + '%';
+        }
+    }
+}
+
+function draw() {
+    // Clear
+    ctx.fillStyle = '#2d5a27'; // Grass
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Castle Walls (Simple borders)
+    ctx.fillStyle = '#555';
+    ctx.fillRect(0, 0, canvas.width, 20); // Top
+    ctx.fillRect(0, canvas.height-20, canvas.width, 20); // Bottom
+    ctx.fillRect(0, 0, 20, canvas.height); // Left
+    ctx.fillRect(canvas.width-20, 0, 20, canvas.height); // Right
+
+    // Draw Doorway to next room
+    if (roomData[currentRoom].enemiesDefeated >= roomData[currentRoom].totalEnemies && currentRoom < 6) {
+        ctx.fillStyle = '#333';
+        ctx.fillRect(canvas.width - 40, 250, 40, 100);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(canvas.width - 35, 255, 30, 90);
+    }
+
+    // Draw Fire Pits (Static hazards)
+    ctx.fillStyle = '#e74c3c';
+    for(let i=0; i<5; i++) {
+        let fx = 100 + (i * 150);
+        let fy = 100 + (i % 2) * 400;
+        if (Math.random() > 0.5) {
+            ctx.beginPath();
+            ctx.arc(fx, fy, 15, 0, Math.PI*2);
+            ctx.fill();
+            // Damage player if touching
+            const dist = Math.hypot(player.x + 16 - fx, player.y + 16 - fy);
+            if (dist < 30 && !player.shieldActive && player.invincible <= 0) {
+                if (frameCount % 10 === 0) {
+                    player.health -= 5;
+                    player.invincible = 10;
+                }
+            }
+        }
+    }
+
+    // Draw Bombs
+    bombs.forEach(b => {
+        ctx.fillStyle = b.warning ? '#ffff00' : '#000';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 10, 0, Math.PI*2);
+        ctx.fill();
+        if (b.warning) {
+            ctx.strokeStyle = '#fff';
+            ctx.stroke();
+        }
+    });
+
+    // Draw Enemies
+    enemies.forEach(en => {
+        if (en.health <= 0) return;
+        ctx.fillStyle = en.color;
+        ctx.fillRect(en.x, en.y, en.w, en.h);
+        
+        // Eyes
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(en.x + 5, en.y + 5, 8, 8);
+        ctx.fillRect(en.x + en.w - 13, en.y + 5, 8, 8);
+        
+        if (en.type === 'boss') {
+            ctx.fillStyle = '#ff0000';
+            ctx.font = '20px Arial';
+            ctx.fillText("DARK LORD", en.x - 10, en.y - 10);
+        }
+    });
+
+    // Draw Projectiles
+    projectiles.forEach(p => {
+        ctx.fillStyle = p.type === 'arrow' ? '#fff' : (p.type === 'fireball' ? '#e74c3c' : '#3498db');
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI*2);
+        ctx.fill();
+    });
+
+    // Draw Player
+    if (player.invincible % 4 < 2) { // Flicker if hit
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, player.w, player.h);
+        
+        // Sword Swing
+        if (player.attacking) {
+            ctx.fillStyle = '#fff';
+            let sx = player.x + player.w/2;
+            let sy = player.y + player.h/2;
+            if (player.dir === 'right') ctx.fillRect(sx, sy-10, 30, 20);
+            if (player.dir === 'left') ctx.fillRect(sx-30, sy-10, 30, 20);
+            if (player.dir === 'down') ctx.fillRect(sx-10, sy, 20, 30);
+            if (player.dir === 'up') ctx.fillRect(sx-10, sy-30, 20, 30);
+        }
+
+        // Shield
+        if (player.shieldActive) {
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(player.x + 16, player.y + 16, 25, 0, Math.PI*2);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(52, 152, 219, 0.3)';
+            ctx.fill();
+        }
+    }
+
+    // Draw Particles
+    particles.forEach(p => {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 4, 4);
+        ctx.globalAlpha = 1.0;
+    });
+    
+    // Cooldown Indicators
+    ctx.fillStyle = '#fff';
+    ctx.font = '14px Courier New';
+    if (player.shieldCooldown > 0) ctx.fillText(`SHIELD: ${Math.ceil(player.shieldCooldown/60)}`, 20, 550);
+    else ctx.fillText(`SHIELD: READY (R)`, 20, 550);
+    
+    if (player.bombCooldown > 0) ctx.fillText(`BOMB: ${Math.ceil(player.bombCooldown/60)}`, 20, 570);
+    else ctx.fillText(`BOMB: READY (T)`, 20, 570);
+}
+
+function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+function endGame(victory) {
+    gameState = victory ? 'victory' : 'gameover';
+    stopBGM();
+    
+    const overlay = document.getElementById('message-overlay');
+    const title = document.getElementById('msg-title');
+    const sub = document.getElementById('msg-subtitle');
+    
+    overlay.style.display = 'flex';
+    
+    if (victory) {
+        playSound('win');
+        title.innerText = "VICTORY!";
+        title.style.color = "#f1c40f";
+        sub.innerText = "Thank you for playing!";
+    } else {
+        title.innerText = "GAME OVER";
+        title.style.color = "#e74c3c";
+        sub.innerText = "The castle claims another soul...";
+    }
+}
+
+function resetGame() {
+    player.health = 100;
+    player.x = 400;
+    player.y = 300;
+    currentRoom = 0;
+    gameState = 'playing';
+    document.getElementById('message-overlay').style.display = 'none';
+    document.getElementById('boss-hud').style.display = 'none';
+    initRooms();
+    spawnEnemies(0);
+    startBGM(false);
+}
+
+function togglePause() {
+    const menu = document.getElementById('pause-menu');
+    if (gameState === 'playing') {
+        gameState = 'paused';
+        menu.style.display = 'flex';
+        stopBGM();
+    } else if (gameState === 'paused') {
+        gameState = 'playing';
+        menu.style.display = 'none';
+        startBGM(currentRoom === 6);
+    }
+}
+
+/**
+ * INPUT HANDLING
+ */
+window.addEventListener('keydown', e => {
+    keys[e.key.toLowerCase()] = true;
+    
+    if (gameState === 'playing') {
+        if (e.code === 'Space' || e.key.toLowerCase() === 'k') {
+            if (!player.attacking) {
+                player.attacking = true;
+                player.attackTimer = 20;
+                playSound('sword');
+            }
+        }
+        if (e.key.toLowerCase() === 'r') {
+            if (!player.shieldActive && player.shieldCooldown <= 0) {
+                player.shieldActive = true;
+                player.shieldTimer = 300; // 5 seconds (60fps)
+                player.shieldCooldown = 480; // 8 seconds
+                playSound('shield');
+            }
+        }
+        if (e.key.toLowerCase() === 't') {
+            if (player.bombCooldown <= 0) {
+                let bx = player.x + 16;
+                let by = player.y + 16;
+                if (player.dir === 'right') bx += 20;
+                if (player.dir === 'left') bx -= 20;
+                if (player.dir === 'down') by += 20;
+                if (player.dir === 'up') by -= 20;
+                
+                bombs.push({x: bx, y: by, timer: 180, warning: false});
+                player.bombCooldown = 180; // 3 seconds
+                playSound('bomb_throw');
+            }
+        }
+        if (e.key === 'Escape') {
+            togglePause();
+        }
+    }
+});
+
+window.addEventListener('keyup', e => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+// Settings Slider
+const volSlider = document.getElementById('volume-slider');
+volSlider.addEventListener('input', (e) => {
+    musicVolume = e.target.value / 100;
+    updateBGMVolume();
+});
+
+/**
+ * INITIALIZATION
+ */
+function init() {
+    initAudio();
+    initRooms();
+    spawnEnemies(0);
+    startBGM(false);
+    gameLoop();
+}
+
+// Start immediately
+init();
+
+</script>
 </body>
 </html>
