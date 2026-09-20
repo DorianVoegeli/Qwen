@@ -6,54 +6,221 @@
     <title>Castle Quest - 2D Zelda-like Adventure</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); font-family: 'Courier New', monospace; }
-        #gameContainer { position: relative; border: 4px solid #4a4a6a; box-shadow: 0 0 20px rgba(255, 100, 100, 0.5); }
-        #gameCanvas { display: none; background: #2d5a27; }
-        #ui { position: absolute; top: 10px; left: 10px; color: white; font-size: 16px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); z-index: 10; }
-        #healthBar { width: 200px; height: 20px; background: #333; border: 2px solid #fff; margin-bottom: 5px; }
-        #healthFill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff4444, #ff6666); transition: width 0.3s; }
-        #bossHealthBar { position: absolute; top: 10px; right: 10px; width: 300px; height: 25px; background: #333; border: 2px solid #fff; display: none; }
-        #bossHealthFill { width: 100%; height: 100%; background: linear-gradient(90deg, #8b0000, #ff0000); transition: width 0.3s; }
-        #bossLabel { position: absolute; top: -20px; right: 0; color: #ff4444; font-weight: bold; font-size: 14px; }
-        #gameOver { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 40px; border: 3px solid #ff4444; text-align: center; color: white; display: none; z-index: 100; }
-        #gameOver h2 { font-size: 32px; margin-bottom: 20px; }
-        #restartBtn { padding: 10px 30px; font-size: 18px; background: #4a4a6a; color: white; border: 2px solid #fff; cursor: pointer; font-family: 'Courier New', monospace; }
-        #restartBtn:hover { background: #6a6a8a; }
-        #abilityStatus { position: absolute; bottom: 10px; right: 10px; color: white; font-size: 14px; text-align: right; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
-        
-        #startScreen, #creditsScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; }
-        #creditsScreen { display: none; }
-        h1 { color: #ffd700; font-size: 48px; margin-bottom: 20px; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); letter-spacing: 4px; }
-        .subtitle { color: #c0c0c0; font-size: 18px; margin-bottom: 40px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
-        .menu-buttons { display: flex; flex-direction: column; gap: 15px; }
-        .menu-btn { padding: 15px 40px; font-size: 20px; font-family: 'Courier New', monospace; background: linear-gradient(180deg, #4a4a6a 0%, #2a2a4a 100%); color: #ffd700; border: 2px solid #6a6a8a; border-radius: 8px; cursor: pointer; transition: all 0.3s; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
-        .menu-btn:hover { background: linear-gradient(180deg, #5a5a7a 0%, #3a3a5a 100%); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.6); }
-        #creditsText { color: #c0c0c0; font-size: 24px; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); text-align: center; line-height: 1.6; }
-        .credit-name { color: #ffd700; font-size: 32px; font-weight: bold; margin-top: 10px; }
-        .controls-info { color: #888; font-size: 14px; margin-top: 30px; text-align: center; line-height: 1.8; }
-        .key { color: #ffd700; font-weight: bold; }
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+            font-family: 'Courier New', monospace; 
+            overflow: hidden;
+        }
+        #gameContainer { 
+            position: relative; 
+            width: 1024px;
+            height: 768px;
+            border: 4px solid #4a4a6a; 
+            box-shadow: 0 0 20px rgba(255, 100, 100, 0.5); 
+            background: #0f0f1a;
+        }
+        #gameCanvas { 
+            display: block; 
+            background: #2d5a27; 
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #ui { 
+            position: absolute; 
+            top: 10px; 
+            left: 10px; 
+            color: white; 
+            font-size: 16px; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+            z-index: 10; 
+        }
+        #healthBar { 
+            width: 200px; 
+            height: 20px; 
+            background: #333; 
+            border: 2px solid #fff; 
+            margin-bottom: 5px; 
+        }
+        #healthFill { 
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(90deg, #ff4444, #ff6666); 
+            transition: width 0.3s; 
+        }
+        #bossHealthBar { 
+            position: absolute; 
+            top: 10px; 
+            right: 10px; 
+            width: 300px; 
+            height: 25px; 
+            background: #333; 
+            border: 2px solid #fff; 
+            display: none; 
+        }
+        #bossHealthFill { 
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(90deg, #8b0000, #ff0000); 
+            transition: width 0.3s; 
+        }
+        #bossLabel { 
+            position: absolute; 
+            top: -20px; 
+            right: 0; 
+            color: #ff4444; 
+            font-weight: bold; 
+            font-size: 14px; 
+        }
+        #gameOver { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            background: rgba(0,0,0,0.9); 
+            padding: 40px; 
+            border: 3px solid #ff4444; 
+            text-align: center; 
+            color: white; 
+            display: none; 
+            z-index: 100; 
+        }
+        #gameOver h2 { 
+            font-size: 32px; 
+            margin-bottom: 20px; 
+        }
+        #restartBtn { 
+            padding: 10px 30px; 
+            font-size: 18px; 
+            background: #4a4a6a; 
+            color: white; 
+            border: 2px solid #fff; 
+            cursor: pointer; 
+            font-family: 'Courier New', monospace; 
+        }
+        #restartBtn:hover { 
+            background: #6a6a8a; 
+        }
+        #abilityStatus { 
+            position: absolute; 
+            bottom: 10px; 
+            right: 10px; 
+            color: white; 
+            font-size: 14px; 
+            text-align: right; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+            z-index: 10;
+        }
+
+        /* Start Screen and Credits Screen */
+        #startScreen, #creditsScreen { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 200; 
+        }
+        #creditsScreen { 
+            display: none; 
+        }
+        h1 { 
+            color: #ffd700; 
+            font-size: 48px; 
+            margin-bottom: 20px; 
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8); 
+            letter-spacing: 4px; 
+        }
+        .subtitle { 
+            color: #c0c0c0; 
+            font-size: 18px; 
+            margin-bottom: 40px; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+        }
+        .menu-buttons { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+        }
+        .menu-btn { 
+            padding: 15px 40px; 
+            font-size: 20px; 
+            font-family: 'Courier New', monospace; 
+            background: linear-gradient(180deg, #4a4a6a 0%, #2a2a4a 100%); 
+            color: #ffd700; 
+            border: 2px solid #6a6a8a; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.3s; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4); 
+        }
+        .menu-btn:hover { 
+            background: linear-gradient(180deg, #5a5a7a 0%, #3a3a5a 100%); 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 12px rgba(0,0,0,0.6); 
+        }
+        #creditsText { 
+            color: #c0c0c0; 
+            font-size: 24px; 
+            margin-bottom: 30px; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+            text-align: center; 
+            line-height: 1.6; 
+        }
+        .credit-name { 
+            color: #ffd700; 
+            font-size: 32px; 
+            font-weight: bold; 
+            margin-top: 10px; 
+        }
+        .controls-info { 
+            color: #888; 
+            font-size: 14px; 
+            margin-top: 30px; 
+            text-align: center; 
+            line-height: 1.8; 
+        }
+        .key { 
+            color: #ffd700; 
+            font-weight: bold; 
+        }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas" width="1024" height="768"></canvas>
+        
         <div id="ui">
             <div id="healthBar"><div id="healthFill"></div></div>
             <div>Room: <span id="roomNum">1</span>/7</div>
         </div>
+        
         <div id="bossHealthBar">
             <div id="bossLabel">DARK LORD</div>
             <div id="bossHealthFill"></div>
         </div>
+        
         <div id="gameOver">
             <h2 id="gameOverText">GAME OVER</h2>
             <button id="restartBtn">PLAY AGAIN</button>
         </div>
+        
         <div id="abilityStatus">
             <div>Shield (R): <span id="shieldStatus">Ready</span></div>
             <div>Bomb (T): <span id="bombStatus">Ready</span></div>
         </div>
-        
+
+        <!-- Start Screen -->
         <div id="startScreen">
             <h1>CASTLE QUEST</h1>
             <div class="subtitle">A Retro Adventure</div>
@@ -63,13 +230,14 @@
                 <button class="menu-btn" id="leaveBtn">LEAVE GAME</button>
             </div>
             <div class="controls-info">
-                <span class="key">WASD/Arrows</span> Move | 
-                <span class="key">SPACE/K</span> Sword Attack | 
-                <span class="key">R</span> Shield (5s) | 
+                <span class="key">WASD/Arrows</span> Move |
+                <span class="key">SPACE/K</span> Sword Attack |
+                <span class="key">R</span> Shield (5s) |
                 <span class="key">T</span> Bomb
             </div>
         </div>
-        
+
+        <!-- Credits Screen -->
         <div id="creditsScreen">
             <h1>CREDITS</h1>
             <div id="creditsText">

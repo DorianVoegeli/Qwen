@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: blue; display: flex; z-index: 200; }
+#gameCanvas { display: none; width: 800px; height: 600px; background: green; }
+</style>
+</head>
+<body>
+<div id="startScreen">
+<h1>TEST</h1>
+<button id="playBtn">PLAY</button>
+</div>
+<canvas id="gameCanvas"></canvas>
+<script>
+document.getElementById('playBtn').addEventListener('click', function() {
+    console.log('Play clicked');
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('gameCanvas').style.display = 'block';
+});
+</script>
+</body>
+</html>
