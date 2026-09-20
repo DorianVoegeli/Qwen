@@ -4,7 +4,7 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 // Game State
-let gameState = 'playing'; // playing, gameover, victory
+let gameState = 'start'; // start, playing, gameover, victory
 let currentRoom = 0;
 const totalRooms = 7;
 
@@ -824,6 +824,49 @@ function restartGame() {
 
 document.getElementById('restartBtn').addEventListener('click', restartGame);
 
+// Start screen elements
+const startScreen = document.getElementById('startScreen');
+const creditsScreen = document.getElementById('creditsScreen');
+const playBtn = document.getElementById('playBtn');
+const creditsBtn = document.getElementById('creditsBtn');
+const leaveBtn = document.getElementById('leaveBtn');
+const backBtn = document.getElementById('backBtn');
+
+// Play button - start the game
+playBtn.addEventListener('click', () => {
+    initAudio();
+    gameState = 'playing';
+    startScreen.style.display = 'none';
+    creditsScreen.style.display = 'none';
+    canvas.style.display = 'block';
+    resetGame();
+    if (bgmPlaying) stopBGM();
+    playBGM('normal');
+});
+
+// Credits button - show credits with Dorian and Saskia
+creditsBtn.addEventListener('click', () => {
+    startScreen.style.display = 'none';
+    creditsScreen.style.display = 'flex';
+});
+
+// Back to menu button
+backBtn.addEventListener('click', () => {
+    creditsScreen.style.display = 'none';
+    startScreen.style.display = 'flex';
+});
+
+// Leave game button - try to close window or show message
+leaveBtn.addEventListener('click', () => {
+    // Try to close the window
+    window.close();
+    
+    // If window.close() doesn't work (modern browsers block it), show alternative
+    setTimeout(() => {
+        alert('Thank you for playing Castle Quest!\n\nYou can now close this tab manually.\n\nGame created by Dorian Voegeli & Saskia');
+    }, 100);
+});
+
 // Main game loop
 function gameLoop() {
     if (gameState === 'playing') {
@@ -851,6 +894,6 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// Start game
+// Start game loop (game will start when Play button is clicked)
 initRoom(0);
 gameLoop();
