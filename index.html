@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Castle Quest - 2D Zelda-like Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Courier New', monospace;
+        }
+        
+        #gameContainer {
+            position: relative;
+            border: 4px solid #4a4a6a;
+            box-shadow: 0 0 20px rgba(255, 100, 100, 0.5);
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: #2d5a27;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+        
+        #healthBar {
+            width: 200px;
+            height: 20px;
+            background: #333;
+            border: 2px solid #fff;
+            margin-bottom: 5px;
+        }
+        
+        #healthFill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ff6666);
+            transition: width 0.3s;
+        }
+        
+        #bossHealthBar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            height: 25px;
+            background: #333;
+            border: 2px solid #fff;
+            display: none;
+        }
+        
+        #bossHealthFill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #8b0000, #ff0000);
+            transition: width 0.3s;
+        }
+        
+        #bossLabel {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            color: #ff4444;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 40px;
+            border: 3px solid #ff4444;
+            text-align: center;
+            color: white;
+            display: none;
+            z-index: 100;
+        }
+        
+        #gameOver h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #ff4444;
+        }
+        
+        #restartBtn {
+            padding: 10px 30px;
+            font-size: 18px;
+            background: #4a4a6a;
+            color: white;
+            border: 2px solid #fff;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #restartBtn:hover {
+            background: #6a6a8a;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1024" height="768"></canvas>
+        <div id="ui">
+            <div id="healthBar"><div id="healthFill"></div></div>
+            <div>Room: <span id="roomNum">1</span>/7</div>
+        </div>
+        <div id="bossHealthBar">
+            <div id="bossLabel">DARK LORD</div>
+            <div id="bossHealthFill"></div>
+        </div>
+        <div id="gameOver">
+            <h2 id="gameOverText">GAME OVER</h2>
+            <button id="restartBtn">PLAY AGAIN</button>
+        </div>
+        <div id="controls">WASD/Arrows: Move | SPACE/K: Attack | Dodge enemies!</div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
